@@ -11,3 +11,4 @@ class Config:
     d_model = 32
     heads = 8
 
+    dataset = 'cicids2017'

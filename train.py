@@ -20,6 +20,8 @@ model = Model().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=Config.lr)
 criterion = nn.CrossEntropyLoss()
 
+step = 0
+
 
 def get_mask(batch_size, heads, seq_size):
     mask_prob = 0.2
@@ -30,41 +32,52 @@ def get_mask(batch_size, heads, seq_size):
 def test(e):
     model.eval()
 
+    losses = []
+    correct = 0
+
     with torch.no_grad():
+        for idx, b in enumerate(testloader):
+            data, target, _ = b
+            data, target = data.cuda(), target.cuda()
+            test_output = model(data)
 
-        for idx, (x_test, y_test) in enumerate(testloader):
-            x_test = x_test.to(device)
-            y_test = y_test.to(device)
+            test_loss = criterion(test_output, target)
 
-            mask_test = get_mask(Config.batch_size, Config.heads, Config.seq_size)
+            losses.append(test_loss.item())
+            correct += torch.eq(torch.argmax(test_output, dim=1), torch.argmax(target, dim=1)).cpu().sum().item()
 
-            test_output = model(x_test, mask_test)
-            test_loss = criterion(test_output, y_test)
-
-            writer.add_scalar('loss/test', test_loss.item(), e * len(testloader) + idx)
+        eval_acc = 100. * correct / len(testloader.dataset)
+        eval_loss = float(np.mean(losses))
+        writer.add_scalar('test/acc', eval_acc, e)
+        writer.add_scalar('test/loss', test_loss.item(), e)
 
 
 for epoch in range(Config.epochs):
 
     model.train()
 
-    for i, (x, y) in enumerate(trainloader):
+    for i, batch in enumerate(trainloader):
 
-        x = x.to(device)
-        y = y.to(device)
+        src, trg, _ = batch
+        src, trg = src.cuda(), trg.cuda()
 
-        mask = get_mask(Config.batch_size, Config.heads, Config.seq_size)
+        if isinstance(model, Model):
+            trg_mask = get_mask(128, 8, 78)
+        else:
+            trg_mask = None
 
-        output = model(x, mask)
-        loss = criterion(output, y)
+        output = model(src, trg_mask)
+        loss = criterion(output, trg)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        writer.add_scalar('loss/train', loss.item(), epoch * len(trainloader) + i)
+        writer.add_scalar('train/loss', loss.item(), step)
 
         if i % Config.log_f == 0:
             print('Epoch: {}, Iter: {}, Loss: {}'.format(epoch, i, loss.item()))
+
+        step += 1
 
     test(epoch)

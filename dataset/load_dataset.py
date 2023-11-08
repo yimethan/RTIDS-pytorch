@@ -37,7 +37,7 @@ class CICIDSDataset(Dataset):
 def load_data():
     if os.path.exists("D:/dataset/cicids2017/preprocessed/data.csv.gz"):
         print("Loading Preprocessed Data")
-        data = pd.read_csv('data/preprocessed/data.csv.gz', compression='gzip')
+        data = pd.read_csv('D:/dataset/cicids2017/preprocessed/data.csv.gz', compression='gzip')
 
     else:
         directory_path = 'D:/dataset/cicids2017/MachineLearningCSV/MachineLearningCVE/'
@@ -103,4 +103,3 @@ def load_data():
     train_data, val_data = train_data.values, val_data.values
 
     return train_data, val_data
-

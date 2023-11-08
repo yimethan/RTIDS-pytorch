@@ -6,6 +6,24 @@ import numpy as np
 from config import Config
 
 
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+
+        self.encoder = Encoder()
+        self.decoder = Decoder()
+        self.out = nn.Linear(78 * Config.d_model, 2)
+
+    def forward(self, x, mask=None):
+        encoder_output = self.encoder(x, mask)
+        decoder_output = self.decoder(x, encoder_output, mask)
+        x = x.view(Config.batch_size, -1)
+        x = self.out(x)
+        x = F.softmax(x, dim=1)
+
+        return x
+
+
 class MultiheadAttention(nn.Module):
 
     def __init__(self):
@@ -17,7 +35,6 @@ class MultiheadAttention(nn.Module):
         self.d_k = self.d_model // self.heads
 
     def attention(self, q, k, v, mask=None):
-
         scores = torch.matmul(q, k.transpose(-2, -1)) / np.sqrt(self.d_k)
 
         if mask is not None:
@@ -28,7 +45,6 @@ class MultiheadAttention(nn.Module):
         return torch.matmul(scores, v)
 
     def forward(self, q, k, v, mask=None):
-
         batch_size = Config.batch_size
 
         q = q.view(batch_size, -1, self.heads, self.d_k)
@@ -57,7 +73,7 @@ class EncoderLayer(nn.Module):
         self.norm1 = self.calculate_norm(Config.d_model)
         self.norm2 = self.calculate_norm(Config.d_model)
         self.multihead_attention = MultiheadAttention()
-        self.feed_forward = nn.Sequential(
+        self.ff = nn.Sequential(
             nn.Linear(Config.d_model, 1024),
             nn.ReLU(),
             nn.Dropout(Config.dropout_rate),
@@ -67,17 +83,16 @@ class EncoderLayer(nn.Module):
         self.dropout_2 = nn.Dropout(Config.dropout_rate)
 
     def calculate_norm(self, x):
-
         norm = self.alpha * (x - x.mean(dim=-1, keepdim=True)) / (x.std(dim=-1, keepdim=True) + self.eps) + self.beta
         return norm
 
     def forward(self, x, mask=None):
         x1 = self.norm1(x)
-        x = self.multihead_attention(x1, x1, x1, mask)
-        x = x + self.dropout_1(x)
+        x2 = self.multihead_attention(x1, x1, x1, mask)
+        x = x + self.dropout_1(x2)
         x = self.norm2(x)
-        x = self.feed_forward(x)
-        x = x + self.dropout_2(x)
+        x1 = self.ff(x)
+        x = x + self.dropout_2(x1)
 
         return x
 
@@ -91,7 +106,6 @@ class Embedding(nn.Module):
         self.bias = nn.Parameter(torch.randn(78, Config.d_model))
 
     def forward(self, x):
-
         x = x.unsqueeze(-1)
         return x * self.weights + self.bias
 
@@ -126,7 +140,6 @@ class Encoder(nn.Module):
         self.encoder_layers = nn.ModuleList([EncoderLayer() for _ in range(6)])
 
     def forward(self, x, mask=None):
-
         x = self.embedding(x)
         x = self.positional_encoding(x)
         for encoder_layer in self.encoder_layers:
@@ -136,6 +149,61 @@ class Encoder(nn.Module):
         return x
 
 
-class Decoder(nn.Module):
+class DecoderLayer(nn.Module):
     def __init__(self):
-        super(Decoder).__init__()
+        super(DecoderLayer, self).__init__()
+
+        self.norm1 = self.calculate_norm(Config.d_model)
+        self.norm2 = self.calculate_norm(Config.d_model)
+        self.norm3 = self.calculate_norm(Config.d_model)
+        self.mask_att = MultiheadAttention()
+        self.att = MultiheadAttention()
+        self.ff = nn.Sequential(
+            nn.Linear(Config.d_model, 1024),
+            nn.ReLU(),
+            nn.Dropout(Config.dropout_rate),
+            nn.Linear(1024, Config.d_model)
+        )
+        self.dropout1 = nn.Dropout(Config.dropout_rate)
+        self.dropout2 = nn.Dropout(Config.dropout_rate)
+        self.dropout3 = nn.Dropout(Config.dropout_rate)
+
+    def calculate_norm(self, x):
+        norm = self.alpha * (x - x.mean(dim=-1, keepdim=True)) / (x.std(dim=-1, keepdim=True) + self.eps) + self.beta
+        return norm
+
+    def forward(self, x, encoder_output, mask):
+        x1 = self.norm1(x)
+        x2 = self.mask_att(x1, x1, x1, mask)
+        x = x + self.dropout1(x2)
+        x1 = self.norm2(x)
+        x2 = self.att(x1, encoder_output, encoder_output)
+        x = x + self.dropout2(x2)
+        x1 = self.norm3(x)
+        x2 = self.ff(x1)
+        x = x + self.dropout3(x2)
+
+        return x
+
+
+class Decoder(nn.Module):
+    def __init(self):
+        super(Decoder, self).__init__()
+
+        self.embedding = Embedding()
+        self.positional_encoding = PositionalEncoding()
+        self.decoder_layers = nn.ModuleList([DecoderLayer() for _ in range(6)])
+        self.norm = self.calculate_norm(Config.d_model)
+
+    def calculate_norm(self, x):
+        norm = self.alpha * (x - x.mean(dim=-1, keepdim=True)) / (x.std(dim=-1, keepdim=True) + self.eps) + self.beta
+        return norm
+
+    def forward(self, x, encoder_output, mask=None):
+        x = self.embedding(x)
+        x = self.positional_encoding(x)
+        for decoder_layer in self.decoder_layers:
+            x = decoder_layer(x, encoder_output, mask)
+        x = self.norm(x)
+
+        return x

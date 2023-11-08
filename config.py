@@ -11,3 +11,6 @@ class Config:
     d_model = 32
     heads = 8
 
+    log_f = 100
+
+    save_path = './model.pt'

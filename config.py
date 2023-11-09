@@ -11,4 +11,10 @@ class Config:
     d_model = 32
     heads = 8
 
+<<<<<<< HEAD
     dataset = 'cicids2017'
+=======
+    log_f = 100
+
+    save_path = './model.pt'
+>>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745

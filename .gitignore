@@ -1,3 +1,6 @@
-train.ipynb
 .idea
 .ipynb_checkpoints
+dataset/
+__pycache__
+runs
+*.pt

@@ -6,11 +6,6 @@ import numpy as np
 from config import Config
 
 
-<<<<<<< HEAD
-def calculate_norm(self, x):
-    norm = self.alpha * (x - x.mean(dim=-1, keepdim=True)) / (x.std(dim=-1, keepdim=True) + self.eps) + self.beta
-    return norm
-=======
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -27,7 +22,6 @@ class Model(nn.Module):
         x = F.softmax(x, dim=1)
 
         return x
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745
 
 
 class MultiheadAttention(nn.Module):
@@ -76,13 +70,8 @@ class EncoderLayer(nn.Module):
         self.eps = 1e-6
         self.beta = nn.Parameter(torch.zeros(Config.d_model))
 
-<<<<<<< HEAD
-        self.norm1 = calculate_norm(Config.d_model)
-        self.norm2 = calculate_norm(Config.d_model)
-=======
         self.norm1 = nn.LayerNorm(Config.d_model)
         self.norm2 = nn.LayerNorm(Config.d_model)
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745
         self.multihead_attention = MultiheadAttention()
         self.ff = nn.Sequential(
             nn.Linear(Config.d_model, 1024),
@@ -159,16 +148,6 @@ class Encoder(nn.Module):
 
 class DecoderLayer(nn.Module):
     def __init__(self):
-<<<<<<< HEAD
-        super(DecoderLayer).__init__()
-
-        self.norm1 = calculate_norm(Config.d_model)
-        self.norm2 = calculate_norm(Config.d_model)
-        self.norm3 = calculate_norm(Config.d_model)
-        self.multihead_attention_1 = MultiheadAttention()
-        self.multihead_attention_2 = MultiheadAttention()
-        self.feed_forward = nn.Sequential(
-=======
         super(DecoderLayer, self).__init__()
 
         self.norm1 = nn.LayerNorm(Config.d_model)
@@ -177,31 +156,11 @@ class DecoderLayer(nn.Module):
         self.mask_att = MultiheadAttention()
         self.att = MultiheadAttention()
         self.ff = nn.Sequential(
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745
             nn.Linear(Config.d_model, 1024),
             nn.ReLU(),
             nn.Dropout(Config.dropout_rate),
             nn.Linear(1024, Config.d_model)
         )
-<<<<<<< HEAD
-        self.dropout_1 = nn.Dropout(Config.dropout_rate)
-        self.dropout_2 = nn.Dropout(Config.dropout_rate)
-        self.dropout_3 = nn.Dropout(Config.dropout_rate)
-
-    def forward(self, x, encoder_output, src_mask=None, trg_mask=None):
-        x = self.norm1(x)
-        x1 = self.multihead_attention_1(x, x, x, trg_mask)
-        x1 = x1 + self.dropout_1(x1)
-        x = x + x1
-        x = self.norm2(x)
-        x2 = self.multihead_attention_2(x, encoder_output, encoder_output, src_mask)
-        x2 = x2 + self.dropout_2(x2)
-        x = x + x2
-        x = self.norm3(x)
-        x3 = self.feed_forward(x)
-        x3 = x3 + self.dropout_3(x3)
-        x = x + x3
-=======
         self.dropout1 = nn.Dropout(Config.dropout_rate)
         self.dropout2 = nn.Dropout(Config.dropout_rate)
         self.dropout3 = nn.Dropout(Config.dropout_rate)
@@ -216,47 +175,12 @@ class DecoderLayer(nn.Module):
         x1 = self.norm3(x)
         x2 = self.ff(x1)
         x = x + self.dropout3(x2)
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745
 
         return x
 
 
 class Decoder(nn.Module):
     def __init__(self):
-<<<<<<< HEAD
-        super(Decoder).__init__()
-
-        self.embedding = Embedding()
-        self.positional_encoding = PositionalEncoding()
-        self.decoder_layers = nn.ModuleList([DecoderLayer() for _ in range(6)])
-        self.norm = calculate_norm(Config.d_model)
-
-    def forward(self, x, encoder_output, src_mask=None, trg_mask=None):
-        x = self.embedding(x)
-        x = self.positional_encoding(x)
-        for decoder_layer in self.decoder_layers:
-            x = decoder_layer(x, encoder_output, src_mask, trg_mask)
-        x = self.norm(x)
-
-        return x
-
-
-class Transformer(nn.Module):
-    def __int__(self):
-        super(Transformer).__init__()
-
-        self.encoder = Encoder()
-        self.decoder = Decoder()
-        self.linear = nn.Linear(Config.d_model, 78)
-
-    def forward(self, src, trg, src_mask=None, trg_mask=None):
-        encoder_output = self.encoder(src, src_mask)
-        decoder_output = self.decoder(trg, encoder_output, src_mask, trg_mask)
-        output = self.linear(decoder_output)
-        output = F.log_softmax(output, dim=1)
-
-        return output
-=======
         super(Decoder, self).__init__()
 
         self.embed = Embedding()
@@ -272,4 +196,3 @@ class Transformer(nn.Module):
         x = self.norm(x)
 
         return x
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745

@@ -1,9 +1,4 @@
-from config import Config
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as transforms
 import os
 import glob
 import numpy as np
@@ -17,55 +12,17 @@ from sklearn.utils import shuffle
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 
-import pandas as pd
 
-
-<<<<<<< HEAD
-class Dataset(nn.Dataset):
-    def __init__(self):
-        self.dataset = Config.dataset
-        self.data = []
-        self.label = []
-        self.data_root = None
-        self.check_exists()
-        self.load_data()
-
-    def check_exists(self):
-        if self.dataset == 'CICIDS2017':
-            data_path = '../dataset/CICIDS2017/MachineLearningCSV/preprocessed'
-
-        elif self.dataset == 'CICDDoS2019':
-            data_path = '../dataset/CICDDoS2019/preprocessed'
-
-        if not os.path.exists(data_path):
-            # TODO: download dataset
-
-        self.data_root = data_path
-
-    def load_data(self):
-
-        data = pd.read_csv(os.path.join(self.data_root, 'data.csv.gz'), compression='gzip')
-
-        for file in data:
-            # self.data.append(file)
-            # self.label.append(file.split('_')[0])
-            self.data.append(file)
-
-=======
 class CICIDSDataset(Dataset):
     def __init__(self, data):
         self.features = data[:, :-3]  # Feature Columns
         self.at_type = data[:, -3]  # Attack Type Column
         self.labels = data[:, -2:]  # 1 Hot Encoded Label
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, idx):
-<<<<<<< HEAD
-        return self.data[idx], self.label[idx]
-=======
         feature = torch.from_numpy(self.features[idx]).float()
         label = self.labels[idx]
         at_type = self.at_type[idx]
@@ -142,4 +99,3 @@ def load_data():
     train_data, val_data = train_data.values, val_data.values
 
     return train_data, val_data
->>>>>>> f35e0785efa6a80da62d42b0569b5d1e9f294745

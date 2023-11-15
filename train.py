@@ -22,6 +22,8 @@ criterion = nn.CrossEntropyLoss()
 
 step = 0
 
+normal_label, abnormal_label = 0, 1
+
 
 def get_mask(batch_size, heads, seq_size):
     mask_prob = 0.2
@@ -49,7 +51,7 @@ def test(e):
         eval_acc = 100. * correct / len(testloader.dataset)
         eval_loss = float(np.mean(losses))
         writer.add_scalar('test/acc', eval_acc, e)
-        writer.add_scalar('test/loss', test_loss.item(), e)
+        writer.add_scalar('test/loss', eval_loss.item(), e)
 
 
 for epoch in range(Config.epochs):
@@ -75,9 +77,9 @@ for epoch in range(Config.epochs):
 
         writer.add_scalar('train/loss', loss.item(), step)
 
+        step += 1
+
         if i % Config.log_f == 0:
             print('Epoch: {}, Iter: {}, Loss: {}'.format(epoch, i, loss.item()))
-
-        step += 1
 
     test(epoch)

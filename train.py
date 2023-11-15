@@ -22,8 +22,6 @@ criterion = nn.CrossEntropyLoss()
 
 step = 0
 
-normal_label, abnormal_label = 0, 1
-
 
 def get_mask(batch_size, heads, seq_size):
     mask_prob = 0.2
@@ -35,7 +33,7 @@ def test(e):
     model.eval()
 
     losses = []
-    correct = 0
+    _correct = 0
 
     with torch.no_grad():
         for idx, b in enumerate(testloader):
@@ -46,9 +44,9 @@ def test(e):
             test_loss = criterion(test_output, target)
 
             losses.append(test_loss.item())
-            correct += torch.eq(torch.argmax(test_output, dim=1), torch.argmax(target, dim=1)).cpu().sum().item()
+            _correct += torch.eq(torch.argmax(test_output, dim=1), torch.argmax(target, dim=1)).cpu().sum().item()
 
-        eval_acc = 100. * correct / len(testloader.dataset)
+        eval_acc = 100. * _correct / len(testloader.dataset)
         eval_loss = float(np.mean(losses))
         writer.add_scalar('test/acc', eval_acc, e)
         writer.add_scalar('test/loss', eval_loss.item(), e)
@@ -57,6 +55,8 @@ def test(e):
 for epoch in range(Config.epochs):
 
     model.train()
+
+    correct = 0
 
     for i, batch in enumerate(trainloader):
 
@@ -81,5 +81,10 @@ for epoch in range(Config.epochs):
 
         if i % Config.log_f == 0:
             print('Epoch: {}, Iter: {}, Loss: {}'.format(epoch, i, loss.item()))
+
+        pred = torch.argmax(output, dim=1)
+        correct += (pred == trg).sum().item()
+    train_acc = 100. * correct / len(trainloader.dataset)
+    writer.add_scalar('train/acc', train_acc, epoch)
 
     test(epoch)

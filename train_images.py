@@ -81,9 +81,8 @@ for epoch in range(Config.epochs):
         loss.backward()
         optimizer.step()
 
-        step += 1
-
         writer.add_scalar('train/loss', loss.item(), step)
+        step += 1
 
         if i % Config.log_f == 0:
             print(f'Epoch {epoch}, step {step}, loss {loss.item()}')

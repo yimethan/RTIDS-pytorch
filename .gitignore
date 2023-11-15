@@ -1,6 +1,6 @@
 .idea
 .ipynb_checkpoints
-dataset/
+dataset/prep.py
 __pycache__
 runs
 *.pt

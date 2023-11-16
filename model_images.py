@@ -17,7 +17,7 @@ class Model(nn.Module):
                                                requires_grad=True)
         self.dropout = nn.Dropout(Config.dropout_rate)
         self.patch_embedding = PatchEmbedding()
-        self.transformer_encoder = nn.ModuleList([Encoder() for _ in range(12)])
+        self.transformer_encoder = nn.ModuleList([Encoder() for _ in range(Config.layers)])
         self.classifier = nn.Sequential(
             nn.LayerNorm(Config.embedding_d),
             nn.Linear(Config.embedding_d, Config.num_classes)
@@ -85,7 +85,7 @@ class MABlock(nn.Module):
         super(MABlock, self).__init__()
 
         self.layer_norm = nn.LayerNorm(Config.embedding_d)
-        self.multihead_attention = nn.MultiheadAttention(Config.embedding_d, Config.heads, Config.attn_dropout, )
+        self.multihead_attention = nn.MultiheadAttention(Config.embedding_d, Config.heads, Config.attn_dropout)
 
     def forward(self, x):
         x = self.layer_norm(x)

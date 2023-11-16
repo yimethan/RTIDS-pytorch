@@ -28,12 +28,6 @@ criterion = nn.CrossEntropyLoss()
 step = 0
 
 
-def get_mask(batch_size, heads, seq_size):
-    mask_prob = 0.2
-    mask = torch.rand((batch_size, heads, seq_size, seq_size)) > mask_prob
-    return mask.cuda()
-
-
 def test(e):
     model.eval()
 
@@ -47,6 +41,9 @@ def test(e):
             x_test = test_sample['input'].to(device)
             y_test = test_sample['label'].to(device)
 
+            if len(y_test) != Config.batch_size:
+                continue
+
             test_output = model(x_test)
 
             test_loss = criterion(test_output, y_test)
@@ -59,7 +56,7 @@ def test(e):
         eval_acc = 100. * _correct / len(testloader.dataset)
         eval_loss = float(np.mean(losses))
         writer.add_scalar('test/acc', eval_acc, e)
-        writer.add_scalar('test/loss', eval_loss.item(), e)
+        writer.add_scalar('test/loss', eval_loss, e)
 
 
 for epoch in range(Config.epochs):
@@ -71,6 +68,9 @@ for epoch in range(Config.epochs):
 
         x_train = inputs['input'].to(device)
         y_train = inputs['label'].to(device)
+
+        if len(y_train) != Config.batch_size:
+            continue
 
         optimizer.zero_grad()
 

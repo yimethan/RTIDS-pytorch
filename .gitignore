@@ -4,3 +4,6 @@ dataset/prep.py
 __pycache__
 runs
 *.pt
+test
+ViT/vision_transformer
+*_road.py

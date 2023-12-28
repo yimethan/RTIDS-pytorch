@@ -1,6 +1,5 @@
-from config import Config
 from dataset.load_dataset import *
-from model import *
+from model.model_cicids import *
 
 import torch
 import torch.nn as nn
